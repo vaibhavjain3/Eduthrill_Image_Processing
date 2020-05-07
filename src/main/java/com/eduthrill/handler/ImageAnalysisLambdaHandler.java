@@ -7,7 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,31 +30,37 @@ import com.eduthrill.utility.AmazonRekognitionUtil;
 @Component
 public class ImageAnalysisLambdaHandler implements RequestHandler<ImageAnalysisPayload, ImageAnalysisResponse>{
 
-	final static Logger logger = Logger.getLogger(ImageAnalysisLambdaHandler.class);
-
-	@Autowired
-	AmazonRekognitionUtil rekognitionClient;
+	//@Autowired
+	AmazonRekognitionUtil rekognitionClient = new AmazonRekognitionUtil();
 
 	@Override
 	public ImageAnalysisResponse handleRequest(ImageAnalysisPayload payload, Context context) {
 		context.getLogger().log("ResourceUrl: " + payload.getResourceUrl());
 		
-		if (payload.getResourceUrl() == null || payload.getResourceUrl().isEmpty()) {
-			return null;
-		}
-
-		logger.info("inside image analysis lambda");
 		ImageAnalysisResponse response = new ImageAnalysisResponse();
 		response.setPayload(payload);
+		
+		if (payload.getResourceUrl() == null || payload.getResourceUrl().isEmpty()) {
+			response.setStatusText("Resource URL is empty");
+			response.setStatusCode(HttpStatus.SC_NO_CONTENT);;
+			return response;
+		}
 
-		processMultipleFacesRequest(payload, response);
-		processObjectLabelDetectionRequest(payload, response);
-		processCompareFacesDetectionRequest(payload, response);
+		try {
+			processMultipleFacesRequest(payload, response);
+			processObjectLabelDetectionRequest(payload, response);
+			processCompareFacesDetectionRequest(payload, response);
+		} catch (Exception e) {
+			response.setStatusText(e.getMessage());
+			response.setStatusCode(HttpStatus.SC_NO_CONTENT);;
+			return response;
+		}
 
+		response.setStatusCode(HttpStatus.SC_OK);
 		return response;
 	}
 
-	public void processMultipleFacesRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) {
+	public void processMultipleFacesRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) throws Exception {
 		DetectFacesRequest request = createDetectFacesRequest(payload.getResourceUrl());
 		if (request == null) {
 			return;
@@ -64,11 +70,12 @@ public class ImageAnalysisLambdaHandler implements RequestHandler<ImageAnalysisP
 			if (result != null) {
 				response.setDetectFaces(result);
 			}
-		} catch (AmazonRekognitionException e) {
+		} catch (Exception e) {
+			throw new Exception("Error in Face detection. " + e.getMessage());
 		}
 	}
 
-	public void processObjectLabelDetectionRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) {
+	public void processObjectLabelDetectionRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) throws Exception {
 		DetectLabelsRequest request = createDetectLabelsRequest(payload.getResourceUrl());
 		if (request == null) {
 			return;
@@ -78,11 +85,12 @@ public class ImageAnalysisLambdaHandler implements RequestHandler<ImageAnalysisP
 			if (result != null) {
 				response.setDetectLabels(result);
 			}
-		} catch (AmazonRekognitionException e) {
+		} catch (Exception e) {
+			throw new Exception("Error in Label detection. " + e.getMessage());
 		}
 	}
 
-	public void processCompareFacesDetectionRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) {
+	public void processCompareFacesDetectionRequest(ImageAnalysisPayload payload, ImageAnalysisResponse response) throws Exception {
 		if(payload.getProfileUrl()==null || payload.getProfileUrl().isEmpty())
 			return;
 	
@@ -95,7 +103,8 @@ public class ImageAnalysisLambdaHandler implements RequestHandler<ImageAnalysisP
 			if (result != null) {
 				response.setCompareFaces(result);
 			}
-		} catch (AmazonRekognitionException e) {
+		} catch (Exception e) {
+			throw new Exception("Error in Compare Face. " + e.getMessage());
 		}
 	}
 

@@ -10,7 +10,8 @@ public class ImageAnalysisResponse {
 	DetectFacesResult detectFaces;
 	CompareFacesResult compareFaces;
 	DetectLabelsResult detectLabels;
-	
+	int statusCode;
+	String statusText;
 	
 	public ImageAnalysisResponse() {
 		super();
@@ -55,5 +56,21 @@ public class ImageAnalysisResponse {
 
 	public void setDetectLabels(DetectLabelsResult detectLabels) {
 		this.detectLabels = detectLabels;
+	}
+
+	public int getStatusCode() {
+		return statusCode;
+	}
+
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
+	}
+
+	public String getStatusText() {
+		return statusText;
+	}
+
+	public void setStatusText(String statusText) {
+		this.statusText = statusText;
 	}
 }

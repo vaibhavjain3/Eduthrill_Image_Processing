@@ -14,6 +14,10 @@ public class AmazonRekognitionUtil {
 
 	private final AmazonRekognition rekognitionClient;
 	
+	public AmazonRekognitionUtil() {
+		rekognitionClient = AmazonRekognitionClientBuilder.standard().withRegion("ap-south-1").build();
+	}
+	
 	public AmazonRekognitionUtil(@Value("${amazon.rekognition.accessKey}") String accessKey,
 			@Value("${amazon.rekognition.secretKey}") String secretKey,
 			@Value("${amazon.rekognition.region}") String region) {
