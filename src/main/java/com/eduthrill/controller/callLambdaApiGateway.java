@@ -11,6 +11,7 @@ import com.eduthrill.model.ImageAnalysisPayload;
 import com.eduthrill.model.ImageAnalysisResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson; 
 
 public class callLambdaApiGateway {
 
@@ -41,7 +42,10 @@ public class callLambdaApiGateway {
 		}
 		
 		HttpEntity<String> entity = new HttpEntity<String>(requestJson, headers);
-		String response = restTemplate.postForObject(apiUrl, entity, String.class);
+		String resp = restTemplate.postForObject(apiUrl, entity, String.class);
+		Gson gson = new Gson(); 
+		ImageAnalysisResponse response = gson.fromJson(resp,ImageAnalysisResponse.class);
+		
 		System.out.println(response);
 	}
 
